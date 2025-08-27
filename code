@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #51cf66, #40c057);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(81, 207, 102, 0.3);
+        }
+
+        .add-city-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px dashed #ddd;
+            display: none;
+        }
+
+        .add-city-form.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .city-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e9ecef;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .city-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .city-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .city-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .city-name {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .weather-icon {
+            font-size: 3em;
+            margin: 10px 0;
+        }
+
+        .temperature {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .weather-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .weather-item span {
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffe6e6;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #d63031;
+        }
+
+        .success {
+            background: #e6ffe6;
+            color: #00b894;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #00b894;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .edit-form {
+            display: none;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .edit-form.active {
+            display: block;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .cities-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌤️ Weather Management System</h1>
+        
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Search cities...">
+            <button class="btn btn-primary" onclick="toggleAddForm()">+ Add City</button>
+            <button class="btn btn-success" onclick="refreshWeather()">🔄 Refresh All</button>
+        </div>
+
+        <div class="add-city-form" id="addCityForm">
+            <h3 style="margin-bottom: 20px; color: #333;">Add New City</h3>
+            <div class="form-group">
+                <label for="cityName">City Name:</label>
+                <input type="text" id="cityName" placeholder="Enter city name (e.g., New York, London)">
+            </div>
+            <div class="form-group">
+                <label for="country">Country (optional):</label>
+                <input type="text" id="country" placeholder="Enter country code (e.g., US, UK)">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" onclick="addCity()">Add City</button>
+                <button class="btn" onclick="toggleAddForm()" style="background: #6c757d; color: white;">Cancel</button>
+            </div>
+        </div>
+
+        <div id="messageContainer"></div>
+        
+        <div class="cities-grid" id="citiesGrid">
+            <div class="loading">Loading weather data...</div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data with some default cities
+        let cities = [
+            { id: 1, name: 'London', country: 'UK' },
+            { id: 2, name: 'New York', country: 'US' },
+            { id: 3, name: 'Tokyo', country: 'JP' },
+            { id: 4, name: 'Paris', country: 'FR' }
+        ];
+        
+        let weatherData = {};
+        let filteredCities = [...cities];
+        let nextId = 5;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSearch();
+            loadAllWeather();
+        });
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchBox = document.getElementById('searchBox');
+            searchBox.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                filteredCities = cities.filter(city => 
+                    city.name.toLowerCase().includes(searchTerm) ||
+                    city.country.toLowerCase().includes(searchTerm)
+                );
+                renderCities();
+            });
+        }
+
+        // Toggle add city form
+        function toggleAddForm() {
+            const form = document.getElementById('addCityForm');
+            form.classList.toggle('active');
+            if (form.classList.contains('active')) {
+                document.getElementById('cityName').focus();
+            }
+        }
+
+        // Add new city
+        function addCity() {
+            const cityName = document.getElementById('cityName').value.trim();
+            const country = document.getElementById('country').value.trim();
+            
+            if (!cityName) {
+                showMessage('Please enter a city name', 'error');
+                return;
+            }
+
+            // Check if city already exists
+            const exists = cities.some(city => 
+                city.name.toLowerCase() === cityName.toLowerCase() && 
+                city.country.toLowerCase() === (country || '').toLowerCase()
+            );
+
+            if (exists) {
+                showMessage('This city already exists in your list', 'error');
+                return;
+            }
+
+            const newCity = {
+                id: nextId++,
+                name: cityName,
+                country: country || ''
+            };
+
+            cities.push(newCity);
+            filteredCities = [...cities];
+            
+            // Clear form
+            document.getElementById('cityName').value = '';
+            document.getElementById('country').value = '';
+            toggleAddForm();
+            
+            showMessage(`${cityName} added successfully!`, 'success');
+            
+            // Load weather for the new city
+            loadWeatherForCity(newCity).then(() => {
+                renderCities();
+            });
+        }
+
+        // Delete city
+        function deleteCity(cityId) {
+            if (confirm('Are you sure you want to delete this city?')) {
+                cities = cities.filter(city => city.id !== cityId);
+                filteredCities = cities.filter(city => 
+                    document.getElementById('searchBox').value === '' ||
+                    city.name.toLowerCase().includes(document.getElementById('searchBox').value.toLowerCase()) ||
+                    city.country.toLowerCase().includes(document.getElementById('searchBox').value.toLowerCase())
+                );
+                delete weatherData[cityId];
+                renderCities();
+                showMessage('City deleted successfully!', 'success');
+            }
+        }
+
+        // Toggle edit form
+        function toggleEditForm(cityId) {
+            const form = document.getElementById(`editForm-${cityId}`);
+            form.classList.toggle('active');
+        }
+
+        // Update city
+        function updateCity(cityId) {
+            const nameInput = document.getElementById(`editName-${cityId}`);
+            const countryInput = document.getElementById(`editCountry-${cityId}`);
+            
+            const newName = nameInput.value.trim();
+            const newCountry = countryInput.value.trim();
+            
+            if (!newName) {
+                showMessage('Please enter a city name', 'error');
+                return;
+            }
+
+            const cityIndex = cities.findIndex(city => city.id === cityId);
+            if (cityIndex !== -1) {
+                cities[cityIndex].name = newName;
+                cities[cityIndex].country = newCountry;
+                
+                filteredCities = [...cities];
+                toggleEditForm(cityId);
+                showMessage('City updated successfully!', 'success');
+                
+                // Reload weather for updated city
+                loadWeatherForCity(cities[cityIndex]).then(() => {
+                    renderCities();
+                });
+            }
+        }
+
+        // Load weather for all cities
+        async function loadAllWeather() {
+            const grid = document.getElementById('citiesGrid');
+            grid.innerHTML = '<div class="loading">Loading weather data...</div>';
+            
+            for (const city of cities) {
+                await loadWeatherForCity(city);
+            }
+            
+            renderCities();
+        }
+
+        // Load weather for a specific city
+        async function loadWeatherForCity(city) {
+            try {
+                // Simulated weather data (in a real app, you'd use a weather API)
+                const weatherConditions = ['sunny', 'cloudy', 'rainy', 'partly-cloudy', 'stormy'];
+                const icons = ['☀️', '☁️', '🌧️', '⛅', '⛈️'];
+                const descriptions = ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy', 'Stormy'];
+                
+                const randomIndex = Math.floor(Math.random() * weatherConditions.length);
+                const randomTemp = Math.floor(Math.random() * 30) + 5; // 5-35°C
+                const randomHumidity = Math.floor(Math.random() * 50) + 30; // 30-80%
+                const randomWindSpeed = Math.floor(Math.random() * 20) + 5; // 5-25 km/h
+                
+                weatherData[city.id] = {
+                    temperature: randomTemp,
+                    condition: weatherConditions[randomIndex],
+                    icon: icons[randomIndex],
+                    description: descriptions[randomIndex],
+                    humidity: randomHumidity,
+                    windSpeed: randomWindSpeed,
+                    feelsLike: randomTemp + Math.floor(Math.random() * 6) - 3,
+                    pressure: 1000 + Math.floor(Math.random() * 50)
+                };
+                
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+            } catch (error) {
+                console.error(`Error loading weather for ${city.name}:`, error);
+                weatherData[city.id] = {
+                    error: 'Failed to load weather data'
+                };
+            }
+        }
+
+        // Refresh weather for all cities
+        async function refreshWeather() {
+            showMessage('Refreshing weather data...', 'success');
+            await loadAllWeather();
+            showMessage('Weather data refreshed!', 'success');
+        }
+
+        // Render cities grid
+        function renderCities() {
+            const grid = document.getElementById('citiesGrid');
+            
+            if (filteredCities.length === 0) {
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <h3>No cities found</h3>
+                        <p>Try adjusting your search or add a new city.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filteredCities.map(city => {
+                const weather = weatherData[city.id];
+                
+                if (!weather) {
+                    return `
+                        <div class="city-card">
+                            <div class="city-header">
+                                <h3 class="city-name">${city.name}${city.country ? `, ${city.country}` : ''}</h3>
+                            </div>
+                            <div class="loading">Loading weather...</div>
+                        </div>
+                    `;
+                }
+
+                if (weather.error) {
+                    return `
+                        <div class="city-card">
+                            <div class="city-header">
+                                <h3 class="city-name">${city.name}${city.country ? `, ${city.country}` : ''}</h3>
+                            </div>
+                            <div class="error">${weather.error}</div>
+                            <div class="card-actions">
+                                <button class="btn btn-danger btn-small" onclick="deleteCity(${city.id})">Delete</button>
+                                <button class="btn btn-primary btn-small" onclick="toggleEditForm(${city.id})">Edit</button>
+                            </div>
+                            ${renderEditForm(city)}
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="city-card">
+                        <div class="city-header">
+                            <h3 class="city-name">${city.name}${city.country ? `, ${city.country}` : ''}</h3>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <div class="weather-icon">${weather.icon}</div>
+                            <div class="temperature">${weather.temperature}°C</div>
+                            <div style="font-size: 18px; color: #666; margin-bottom: 20px;">${weather.description}</div>
+                        </div>
+
+                        <div class="weather-details">
+                            <div class="weather-item">
+                                <span>💧</span>
+                                <span>Humidity: ${weather.humidity}%</span>
+                            </div>
+                            <div class="weather-item">
+                                <span>🌪️</span>
+                                <span>Wind: ${weather.windSpeed} km/h</span>
+                            </div>
+                            <div class="weather-item">
+                                <span>🌡️</span>
+                                <span>Feels like: ${weather.feelsLike}°C</span>
+                            </div>
+                            <div class="weather-item">
+                                <span>📊</span>
+                                <span>Pressure: ${weather.pressure} hPa</span>
+                            </div>
+                        </div>
+
+                        <div class="card-actions">
+                            <button class="btn btn-danger btn-small" onclick="deleteCity(${city.id})">Delete</button>
+                            <button class="btn btn-primary btn-small" onclick="toggleEditForm(${city.id})">Edit</button>
+                        </div>
+
+                        ${renderEditForm(city)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render edit form for a city
+        function renderEditForm(city) {
+            return `
+                <div class="edit-form" id="editForm-${city.id}">
+                    <h4 style="margin-bottom: 15px; color: #333;">Edit City</h4>
+                    <div class="form-group">
+                        <label>City Name:</label>
+                        <input type="text" id="editName-${city.id}" value="${city.name}">
+                    </div>
+                    <div class="form-group">
+                        <label>Country:</label>
+                        <input type="text" id="editCountry-${city.id}" value="${city.country}">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn btn-success btn-small" onclick="updateCity(${city.id})">Save</button>
+                        <button class="btn btn-small" onclick="toggleEditForm(${city.id})" style="background: #6c757d; color: white;">Cancel</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show messages to user
+        function showMessage(message, type) {
+            const container = document.getElementById('messageContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            container.innerHTML = '';
+            container.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
